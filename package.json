@@ -1,0 +1,29 @@
+{
+  "name": "ead",
+  "version": "1.0.0",
+  "description": "Playing with effects as data",
+  "main": "ead.js",
+  "scripts": {
+    "test": "jest",
+    "lint": "esw .eslintrc.js src/ lib/ tests/ -w --fix --ignore-pattern !.eslintrc.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/carlmanaster/ead.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/carlmanaster/ead/issues"
+  },
+  "homepage": "https://github.com/carlmanaster/ead#readme",
+  "devDependencies": {
+    "eslint": "^4.10.0",
+    "eslint-plugin-jest": "^21.2.0",
+    "eslint-plugin-prettier": "^2.3.1",
+    "eslint-watch": "^3.1.3",
+    "jest": "^21.2.1",
+    "prettier": "^1.7.4",
+    "prettier-eslint": "^8.2.1"
+  }
+}
