@@ -1,6 +1,14 @@
 const process = function(handlers, commandGenerator) {
-  const { type, payload } = commandGenerator().next().value
-  return handlers[type]({ payload })
+  const cg = commandGenerator()
+  let nextResult = cg.next()
+  let result
+  while (!nextResult.done) {
+    const value = nextResult.value
+    const { type, payload } = value
+    result = handlers[type]({ payload })
+    nextResult = cg.next()
+  }
+  return result
 }
 
 module.exports = {
