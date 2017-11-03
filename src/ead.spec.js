@@ -5,6 +5,7 @@ const {
   assertFailure,
   success,
   failure,
+  hydrate,
 } = require('@pheasantplucker/failables')
 const { prop, map, reverse } = require('ramda')
 
@@ -57,76 +58,85 @@ describe('ead.js', () => {
 
   const fail = {
     command: () => ({ type: 'fail' }),
-    handler: () => {
-      return failure('handler failed')
-    },
+    handler: () => failure('handler failed'),
   }
 
-  const things = { double, boom, flip, fail }
+  const later = {
+    command: payload => ({ type: 'later', payload }),
+    handler: ({ payload }) => Promise.resolve(payload.length),
+    // handler: ({ payload }) => payload.length,
+  }
+
+  const things = { double, boom, flip, fail, later }
   const handlers = map(prop('handler'), things)
   const commands = map(prop('command'), things)
 
-  it('single command, simple response', () => {
+  it('single command, simple response', async () => {
     const commandGenerator = function*() {
       yield commands.double('fred')
     }
-    const result = process(handlers, commandGenerator)
+    const result = await process(handlers, commandGenerator)
     assertSuccess(result, 'fredfred')
   })
 
-  it('two unrelated commands, simple response', () => {
+  it('two unrelated commands, simple response', async () => {
     const commandGenerator = function*() {
       yield commands.double('a')
       yield commands.double('b')
     }
-    const result = process(handlers, commandGenerator)
+    const result = await process(handlers, commandGenerator)
     assertSuccess(result, 'bb')
   })
 
-  it('two dependent commands, simple response', () => {
+  it('two dependent commands, simple response', async () => {
     const commandGenerator = function*() {
       const aa = yield commands.double('a')
       yield commands.double(aa)
     }
-    const result = process(handlers, commandGenerator)
+    const result = await process(handlers, commandGenerator)
     assertSuccess(result, 'aaaa')
   })
 
-  it('handles error as failable', () => {
+  it('handles error as failable', async () => {
     const commandGenerator = function*() {
       yield commands.boom()
     }
-    const result = process(handlers, commandGenerator)
+    const result = await process(handlers, commandGenerator)
     assertFailure(result)
   })
 
-  it('does not double-wrap failable results', () => {
+  it('does not double-wrap failable results', async () => {
     const commandGenerator = function*() {
       yield commands.flip('bat')
     }
-    const result = process(handlers, commandGenerator)
+    const result = await process(handlers, commandGenerator)
     assertSuccess(result, 'tab')
   })
 
-  it('unwraps intermediate failables', () => {
+  it('unwraps intermediate failables', async () => {
     const commandGenerator = function*() {
       const tab = yield commands.flip('bat')
       yield commands.double(tab)
     }
-    const result = process(handlers, commandGenerator)
+    const result = await process(handlers, commandGenerator)
     assertSuccess(result, 'tabtab')
   })
 
-  it('returns first failure', () => {
+  it('returns first failure', async () => {
     const commandGenerator = function*() {
       yield commands.fail()
       yield commands.flip('zot')
     }
-    const result = process(handlers, commandGenerator)
+    const result = await process(handlers, commandGenerator)
     assertFailure(result, 'handler failed')
   })
-})
 
-// Promise(Failable(result))
-// de-promise everything
-// en-failable everything (including try-wrap)
+  it('resolves promises', async () => {
+    const commandGenerator = function*() {
+      const zotzot = yield commands.double('zot')
+      yield commands.later(zotzot)
+    }
+    const result = await process(handlers, commandGenerator)
+    assertSuccess(result, 6)
+  })
+})
