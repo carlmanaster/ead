@@ -31,37 +31,31 @@ describe('ead.js', () => {
     })
   })
 
-  const command = payload => ({ type: 'double', payload })
+  const cmdDouble = payload => ({ type: 'double', payload })
   const double = ({ payload }) => `${payload}${payload}`
+  const handlers = { double }
 
   it('single command, simple response', () => {
-    const c = command('fred')
-    const handlers = { double }
     const commandGenerator = function*() {
-      yield c
+      yield cmdDouble('fred')
     }
     const result = process(handlers, commandGenerator)
     equal(result, 'fredfred')
   })
 
   it('two unrelated commands, simple response', () => {
-    const a = command('a')
-    const b = command('b')
-    const handlers = { double }
     const commandGenerator = function*() {
-      yield a
-      yield b
+      yield cmdDouble('a')
+      yield cmdDouble('b')
     }
     const result = process(handlers, commandGenerator)
     equal(result, 'bb')
   })
 
   it('two dependent commands, simple response', () => {
-    const a = command('a')
-    const handlers = { double }
     const commandGenerator = function*() {
-      const aa = yield a
-      yield command(aa)
+      const aa = yield cmdDouble('a')
+      yield cmdDouble(aa)
     }
     const result = process(handlers, commandGenerator)
     equal(result, 'aaaa')
