@@ -2,6 +2,7 @@ const {
   success,
   failure,
   isFailable,
+  isFailure,
   payload: p,
 } = require('@pheasantplucker/failables')
 
@@ -17,6 +18,7 @@ const process = function(handlers, commandGenerator) {
     const { type, payload } = value
     try {
       result = handlers[type]({ payload })
+      if (isFailure(result)) return result
     } catch (e) {
       return failure(`failed on command ${type}`)
     }

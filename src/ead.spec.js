@@ -4,6 +4,7 @@ const {
   assertSuccess,
   assertFailure,
   success,
+  failure,
 } = require('@pheasantplucker/failables')
 const { prop, map, reverse } = require('ramda')
 
@@ -54,7 +55,14 @@ describe('ead.js', () => {
     },
   }
 
-  const things = { double, boom, flip }
+  const fail = {
+    command: () => ({ type: 'fail' }),
+    handler: () => {
+      return failure('handler failed')
+    },
+  }
+
+  const things = { double, boom, flip, fail }
   const handlers = map(prop('handler'), things)
   const commands = map(prop('command'), things)
 
@@ -107,6 +115,15 @@ describe('ead.js', () => {
     }
     const result = process(handlers, commandGenerator)
     assertSuccess(result, 'tabtab')
+  })
+
+  it('returns first failure', () => {
+    const commandGenerator = function*() {
+      yield commands.fail()
+      yield commands.flip('zot')
+    }
+    const result = process(handlers, commandGenerator)
+    assertFailure(result, 'handler failed')
   })
 })
 
