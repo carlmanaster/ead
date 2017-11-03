@@ -27,6 +27,7 @@
     "prettier-eslint": "^8.2.1"
   },
   "dependencies": {
-    "@pheasantplucker/failables": "^1.0.2"
+    "@pheasantplucker/failables": "^1.0.2",
+    "ramda": "^0.25.0"
   }
 }

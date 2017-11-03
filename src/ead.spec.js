@@ -1,6 +1,7 @@
 const equal = require('assert').deepEqual
 const { process } = require('./ead')
 const { assertSuccess, assertFailure } = require('@pheasantplucker/failables')
+const { prop, map } = require('ramda')
 
 describe('ead.js', () => {
   describe('generator playground', () => {
@@ -32,17 +33,28 @@ describe('ead.js', () => {
     })
   })
 
-  const cmdDouble = payload => ({ type: 'double', payload })
-  const cmdBoom = () => ({ type: 'boom' })
-  const double = ({ payload }) => `${payload}${payload}`
-  const boom = () => {
-    throw new Error()
+  const double = {
+    command: payload => ({ type: 'double', payload }),
+    handler: ({ payload }) => `${payload}${payload}`,
   }
-  const handlers = { double, boom }
 
+  const boom = {
+    command: () => ({ type: 'boom' }),
+    handler: () => {
+      throw new Error()
+    },
+  }
+
+  const things = { double, boom }
+  const handlers = map(prop('handler'), things)
+  const commands = map(prop('command'), things)
+  console.log(`commands`, commands)
+
+  // const handlers = { double, boom }
+  //
   it('single command, simple response', () => {
     const commandGenerator = function*() {
-      yield cmdDouble('fred')
+      yield commands.double('fred')
     }
     const result = process(handlers, commandGenerator)
     assertSuccess(result, 'fredfred')
@@ -50,8 +62,8 @@ describe('ead.js', () => {
 
   it('two unrelated commands, simple response', () => {
     const commandGenerator = function*() {
-      yield cmdDouble('a')
-      yield cmdDouble('b')
+      yield commands.double('a')
+      yield commands.double('b')
     }
     const result = process(handlers, commandGenerator)
     assertSuccess(result, 'bb')
@@ -59,8 +71,8 @@ describe('ead.js', () => {
 
   it('two dependent commands, simple response', () => {
     const commandGenerator = function*() {
-      const aa = yield cmdDouble('a')
-      yield cmdDouble(aa)
+      const aa = yield commands.double('a')
+      yield commands.double(aa)
     }
     const result = process(handlers, commandGenerator)
     assertSuccess(result, 'aaaa')
@@ -68,7 +80,7 @@ describe('ead.js', () => {
 
   it('handles error as failable', () => {
     const commandGenerator = function*() {
-      yield cmdBoom()
+      yield commands.boom()
     }
     const result = process(handlers, commandGenerator)
     assertFailure(result)
