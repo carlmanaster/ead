@@ -1,4 +1,6 @@
-const { success, failure } = require('@pheasantplucker/failables')
+const { success, failure, isFailable } = require('@pheasantplucker/failables')
+
+const asFailable = v => (isFailable(v) ? v : success(v))
 
 const process = function(handlers, commandGenerator) {
   const cg = commandGenerator()
@@ -14,7 +16,7 @@ const process = function(handlers, commandGenerator) {
     }
     nextResult = cg.next(result)
   }
-  return success(result)
+  return asFailable(result)
 }
 
 module.exports = {

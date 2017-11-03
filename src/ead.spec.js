@@ -1,7 +1,11 @@
 const equal = require('assert').deepEqual
 const { process } = require('./ead')
-const { assertSuccess, assertFailure } = require('@pheasantplucker/failables')
-const { prop, map } = require('ramda')
+const {
+  assertSuccess,
+  assertFailure,
+  success,
+} = require('@pheasantplucker/failables')
+const { prop, map, reverse } = require('ramda')
 
 describe('ead.js', () => {
   describe('generator playground', () => {
@@ -38,6 +42,11 @@ describe('ead.js', () => {
     handler: ({ payload }) => `${payload}${payload}`,
   }
 
+  const flip = {
+    command: payload => ({ type: 'flip', payload }),
+    handler: ({ payload }) => success(reverse(payload)),
+  }
+
   const boom = {
     command: () => ({ type: 'boom' }),
     handler: () => {
@@ -45,13 +54,10 @@ describe('ead.js', () => {
     },
   }
 
-  const things = { double, boom }
+  const things = { double, boom, flip }
   const handlers = map(prop('handler'), things)
   const commands = map(prop('command'), things)
-  console.log(`commands`, commands)
 
-  // const handlers = { double, boom }
-  //
   it('single command, simple response', () => {
     const commandGenerator = function*() {
       yield commands.double('fred')
@@ -84,6 +90,14 @@ describe('ead.js', () => {
     }
     const result = process(handlers, commandGenerator)
     assertFailure(result)
+  })
+
+  it('does not double-wrap failable results', () => {
+    const commandGenerator = function*() {
+      yield commands.flip('bat')
+    }
+    const result = process(handlers, commandGenerator)
+    assertSuccess(result, 'tab')
   })
 })
 
