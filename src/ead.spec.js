@@ -32,8 +32,14 @@ describe('ead.js', () => {
   })
 
   const cmdDouble = payload => ({ type: 'double', payload })
+  const cmdBoom = () => {
+    type: 'boom'
+  }
   const double = ({ payload }) => `${payload}${payload}`
-  const handlers = { double }
+  const boom = () => {
+    throw new Error()
+  }
+  const handlers = { double, boom }
 
   it('single command, simple response', () => {
     const commandGenerator = function*() {
@@ -61,3 +67,7 @@ describe('ead.js', () => {
     equal(result, 'aaaa')
   })
 })
+
+// Promise(Failable(result))
+// de-promise everything
+// en-failable everything (including try-wrap)
