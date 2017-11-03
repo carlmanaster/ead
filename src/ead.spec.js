@@ -55,4 +55,15 @@ describe('ead.js', () => {
     const result = process(handlers, commandGenerator)
     equal(result, 'bb')
   })
+
+  it('two dependent commands, simple response', () => {
+    const a = command('a')
+    const handlers = { double }
+    const commandGenerator = function*() {
+      const aa = yield a
+      yield command(aa)
+    }
+    const result = process(handlers, commandGenerator)
+    equal(result, 'aaaa')
+  })
 })
