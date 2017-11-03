@@ -1,5 +1,6 @@
 const equal = require('assert').deepEqual
 const { process } = require('./ead')
+const { assertSuccess, assertFailure } = require('@pheasantplucker/failables')
 
 describe('ead.js', () => {
   describe('generator playground', () => {
@@ -32,9 +33,7 @@ describe('ead.js', () => {
   })
 
   const cmdDouble = payload => ({ type: 'double', payload })
-  const cmdBoom = () => {
-    type: 'boom'
-  }
+  const cmdBoom = () => ({ type: 'boom' })
   const double = ({ payload }) => `${payload}${payload}`
   const boom = () => {
     throw new Error()
@@ -46,7 +45,7 @@ describe('ead.js', () => {
       yield cmdDouble('fred')
     }
     const result = process(handlers, commandGenerator)
-    equal(result, 'fredfred')
+    assertSuccess(result, 'fredfred')
   })
 
   it('two unrelated commands, simple response', () => {
@@ -55,7 +54,7 @@ describe('ead.js', () => {
       yield cmdDouble('b')
     }
     const result = process(handlers, commandGenerator)
-    equal(result, 'bb')
+    assertSuccess(result, 'bb')
   })
 
   it('two dependent commands, simple response', () => {
@@ -64,7 +63,15 @@ describe('ead.js', () => {
       yield cmdDouble(aa)
     }
     const result = process(handlers, commandGenerator)
-    equal(result, 'aaaa')
+    assertSuccess(result, 'aaaa')
+  })
+
+  it('handles error as failable', () => {
+    const commandGenerator = function*() {
+      yield cmdBoom()
+    }
+    const result = process(handlers, commandGenerator)
+    assertFailure(result)
   })
 })
 

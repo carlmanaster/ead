@@ -1,3 +1,5 @@
+const { success, failure } = require('@pheasantplucker/failables')
+
 const process = function(handlers, commandGenerator) {
   const cg = commandGenerator()
   let nextResult = cg.next()
@@ -5,10 +7,14 @@ const process = function(handlers, commandGenerator) {
   while (!nextResult.done) {
     const value = nextResult.value
     const { type, payload } = value
-    result = handlers[type]({ payload })
+    try {
+      result = handlers[type]({ payload })
+    } catch (e) {
+      return failure(`failed on command ${type}`)
+    }
     nextResult = cg.next(result)
   }
-  return result
+  return success(result)
 }
 
 module.exports = {
