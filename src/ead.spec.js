@@ -99,6 +99,15 @@ describe('ead.js', () => {
     const result = process(handlers, commandGenerator)
     assertSuccess(result, 'tab')
   })
+
+  it('unwraps intermediate failables', () => {
+    const commandGenerator = function*() {
+      const tab = yield commands.flip('bat')
+      yield commands.double(tab)
+    }
+    const result = process(handlers, commandGenerator)
+    assertSuccess(result, 'tabtab')
+  })
 })
 
 // Promise(Failable(result))

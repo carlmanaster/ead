@@ -1,6 +1,12 @@
-const { success, failure, isFailable } = require('@pheasantplucker/failables')
+const {
+  success,
+  failure,
+  isFailable,
+  payload: p,
+} = require('@pheasantplucker/failables')
 
 const asFailable = v => (isFailable(v) ? v : success(v))
+const payloadOf = v => (isFailable(v) ? p(v) : v)
 
 const process = function(handlers, commandGenerator) {
   const cg = commandGenerator()
@@ -14,7 +20,7 @@ const process = function(handlers, commandGenerator) {
     } catch (e) {
       return failure(`failed on command ${type}`)
     }
-    nextResult = cg.next(result)
+    nextResult = cg.next(payloadOf(result))
   }
   return asFailable(result)
 }
