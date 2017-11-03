@@ -5,7 +5,6 @@ const {
   assertFailure,
   success,
   failure,
-  hydrate,
 } = require('@pheasantplucker/failables')
 const { prop, map, reverse } = require('ramda')
 
